@@ -35,6 +35,12 @@ ts = int(ts)
 ts = str(ts)
 
 
+
+def convertToBinaryData(filename):
+    with open(filename, 'rb') as file:
+        binaryData = file.read()
+    return binaryData
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -53,6 +59,33 @@ def upload_file():
         return redirect('/')
     else:
         return redirect('/')
+
+
+
+
+# alt upload
+@app.route('/altupload')
+def alt_upload():
+    return render_template('alt-upload.html')
+
+#upload file on database
+@app.route('/dbupload', methods=['POST'])
+def upload_file_ondb():
+    if request.method == 'POST':
+        main_file = request.files['file']
+        main_file_name = main_file.filename
+        file_extension = main_file_name.rsplit('.', 1)[1].lower()
+        new_file_name = ts+'.'+file_extension
+        main_file.save(os.path.join(app.config['UPLOAD_FOLDER'], new_file_name))
+        x = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+
+        new_file = convertToBinaryData(x)
+        cursor.execute("INSERT INTO upload_file_on_db(file,file_name) VALUES(%s,%s)", (new_file,new_file_name))
+        cnx.commit()
+        return redirect('/')
+    else:
+        return redirect('/')
+
 
 
 @app.route('/viewfile')
